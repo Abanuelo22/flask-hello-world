@@ -27,5 +27,40 @@ def db_test():
             conn.close()
 
 
+@app.route("/db_create")
+def db_create():
+    conn = None
+    cursor = None
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS students (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL
+            );
+            """
+        )
+
+        conn.commit()
+        return "Students table created successfully"
+
+    except Exception as error:
+        if conn is not None:
+            conn.rollback()
+
+        return f"Error creating table: {error}"
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+        if conn is not None:
+            conn.close()
+
+
 if __name__ == "__main__":
     app.run(debug=True)
