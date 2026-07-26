@@ -61,6 +61,39 @@ def db_create():
         if conn is not None:
             conn.close()
 
+@app.route("/db_insert")
+def db_insert():
+    conn = None
+    cursor = None
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO students (name)
+            VALUES (%s);
+            """,
+            ("Alex Banuelos",)
+        )
+
+        conn.commit()
+        return "Student inserted successfully"
+
+    except Exception as error:
+        if conn is not None:
+            conn.rollback()
+
+        return f"Error inserting student: {error}"
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+        if conn is not None:
+            conn.close()
+
 
 if __name__ == "__main__":
     app.run(debug=True)
