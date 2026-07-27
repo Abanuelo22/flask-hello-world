@@ -131,6 +131,36 @@ def db_select():
 
         if conn is not None:
             conn.close()
+@app.route("/db_drop")
+def db_drop():
+    conn = None
+    cursor = None
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            DROP TABLE IF EXISTS students;
+            """
+        )
+
+        conn.commit()
+        return "Students table dropped successfully"
+
+    except Exception as error:
+        if conn is not None:
+            conn.rollback()
+
+        return f"Error dropping table: {error}"
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+        if conn is not None:
+            conn.close()
 
 
 if __name__ == "__main__":
