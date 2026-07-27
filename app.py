@@ -94,6 +94,44 @@ def db_insert():
         if conn is not None:
             conn.close()
 
+@app.route("/db_select")
+def db_select():
+    conn = None
+    cursor = None
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT id, name
+            FROM students
+            ORDER BY id;
+            """
+        )
+
+        rows = cursor.fetchall()
+
+        if not rows:
+            return "No students found"
+
+        result = ""
+        for row in rows:
+            result += f"ID: {row[0]}, Name: {row[1]}<br>"
+
+        return result
+
+    except Exception as error:
+        return f"Error selecting students: {error}"
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+        if conn is not None:
+            conn.close()
+
 
 if __name__ == "__main__":
     app.run(debug=True)
