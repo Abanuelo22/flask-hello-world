@@ -20,8 +20,10 @@ def db_test():
     try:
         conn = psycopg2.connect(DATABASE_URL)
         return "Database connection successful"
+
     except Exception as error:
         return f"Database connection failed: {error}"
+
     finally:
         if conn is not None:
             conn.close()
@@ -38,21 +40,24 @@ def db_create():
 
         cursor.execute(
             """
-            CREATE TABLE IF NOT EXISTS students (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(100) NOT NULL
+            CREATE TABLE IF NOT EXISTS Basketball (
+                First varchar(255),
+                Last varchar(255),
+                City varchar(255),
+                Name varchar(255),
+                Number int
             );
             """
         )
 
         conn.commit()
-        return "Students table created successfully"
+        return "Basketball Table Created"
 
     except Exception as error:
         if conn is not None:
             conn.rollback()
 
-        return f"Error creating table: {error}"
+        return f"Error creating Basketball table: {error}"
 
     finally:
         if cursor is not None:
@@ -60,6 +65,7 @@ def db_create():
 
         if conn is not None:
             conn.close()
+
 
 @app.route("/db_insert")
 def db_insert():
@@ -72,20 +78,24 @@ def db_insert():
 
         cursor.execute(
             """
-            INSERT INTO students (name)
-            VALUES (%s);
-            """,
-            ("Alex Banuelos",)
+            INSERT INTO Basketball (First, Last, City, Name, Number)
+            VALUES
+                ('Jayson', 'Tatum', 'Boston', 'Celtics', 0),
+                ('Stephen', 'Curry', 'San Francisco', 'Warriors', 30),
+                ('Nikola', 'Jokic', 'Denver', 'Nuggets', 15),
+                ('Kawhi', 'Leonard', 'Los Angeles', 'Clippers', 2),
+                ('Alex', 'Banuelos', 'CU Boulder', 'JGT Finance', 3308);
+            """
         )
 
         conn.commit()
-        return "Student inserted successfully"
+        return "Basketball Table Populated"
 
     except Exception as error:
         if conn is not None:
             conn.rollback()
 
-        return f"Error inserting student: {error}"
+        return f"Error populating Basketball table: {error}"
 
     finally:
         if cursor is not None:
@@ -93,6 +103,7 @@ def db_insert():
 
         if conn is not None:
             conn.close()
+
 
 @app.route("/db_select")
 def db_select():
@@ -103,27 +114,69 @@ def db_select():
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            SELECT id, name
-            FROM students
-            ORDER BY id;
-            """
-        )
+        cursor.execute("SELECT * FROM Basketball;")
+        records = cursor.fetchall()
 
-        rows = cursor.fetchall()
+        html = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Basketball Table</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 40px;
+                }
 
-        if not rows:
-            return "No students found"
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    max-width: 900px;
+                }
 
-        result = ""
-        for row in rows:
-            result += f"ID: {row[0]}, Name: {row[1]}<br>"
+                th,
+                td {
+                    border: 1px solid black;
+                    padding: 10px;
+                    text-align: left;
+                }
 
-        return result
+                th {
+                    background-color: #eeeeee;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Basketball Table</h1>
+            <table>
+                <tr>
+                    <th>First</th>
+                    <th>Last</th>
+                    <th>City</th>
+                    <th>Name</th>
+                    <th>Number</th>
+                </tr>
+        """
+
+        for row in records:
+            html += "<tr>"
+
+            for value in row:
+                html += f"<td>{value}</td>"
+
+            html += "</tr>"
+
+        html += """
+            </table>
+        </body>
+        </html>
+        """
+
+        return html
 
     except Exception as error:
-        return f"Error selecting students: {error}"
+        return f"Error selecting Basketball records: {error}"
 
     finally:
         if cursor is not None:
@@ -131,6 +184,8 @@ def db_select():
 
         if conn is not None:
             conn.close()
+
+
 @app.route("/db_drop")
 def db_drop():
     conn = None
@@ -140,20 +195,16 @@ def db_drop():
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            DROP TABLE IF EXISTS students;
-            """
-        )
+        cursor.execute("DROP TABLE IF EXISTS Basketball;")
 
         conn.commit()
-        return "Students table dropped successfully"
+        return "Basketball Table Dropped"
 
     except Exception as error:
         if conn is not None:
             conn.rollback()
 
-        return f"Error dropping table: {error}"
+        return f"Error dropping Basketball table: {error}"
 
     finally:
         if cursor is not None:
